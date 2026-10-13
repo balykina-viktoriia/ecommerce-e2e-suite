@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+base_url = "https://www.saucedemo.com"
+addopts = "--strict-markers --screenshot=only-on-failure --tracing=retain-on-failure"
+markers = [
+    "ui: browser tests against saucedemo (Playwright + POM)",
+    "api: HTTP tests against the shop API",
+    "auth: authentication and authorization tests",
+    "db: tests that query the database directly",
+    "data_quality: data-quality checks on a dataset",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
