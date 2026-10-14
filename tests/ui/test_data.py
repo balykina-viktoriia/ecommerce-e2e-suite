@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import IntEnum, StrEnum
 
 DEFAULT_PASSWORD = "secret_sauce"
+TAX_RATE = Decimal("0.08")
 
 
 @dataclass(frozen=True)
@@ -38,9 +40,23 @@ class InventoryItem(IntEnum):
     RED_T_SHIRT = 5
 
 
+class SortOption(StrEnum):
+    """Values of the sort dropdown on the inventory page."""
+
+    NAME_A_TO_Z = "az"
+    NAME_Z_TO_A = "za"
+    PRICE_LOW_TO_HIGH = "lohi"
+    PRICE_HIGH_TO_LOW = "hilo"
+
+
 class ErrorMessage(StrEnum):
-    LAST_NAME_REQUIRED = "Error: Last Name is required"
+    USERNAME_REQUIRED = "Epic sadface: Username is required"
+    PASSWORD_REQUIRED = "Epic sadface: Password is required"
+    WRONG_CREDENTIALS = "Epic sadface: Username and password do not match any user in this service"
     LOCKED_OUT = "Epic sadface: Sorry, this user has been locked out."
+    FIRST_NAME_REQUIRED = "Error: First Name is required"
+    LAST_NAME_REQUIRED = "Error: Last Name is required"
+    POSTAL_CODE_REQUIRED = "Error: Postal Code is required"
 
 
 class SuccessMessage(StrEnum):
