@@ -34,3 +34,22 @@ services:
       interval: 2s
       timeout: 3s
       retries: 15
+
+  tests:
+    build: .
+    # Only started on request: docker compose run --rm tests
+    profiles: ["test"]
+    environment:
+      API_BASE_URL: http://app:8000
+      TEST_DATABASE_URL: postgresql://${POSTGRES_USER:-shop}:${POSTGRES_PASSWORD:-shop}@db:5432/${POSTGRES_DB:-shop}
+      JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-0123456789}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin-pass}
+      VIEWER_USERNAME: ${VIEWER_USERNAME:-viewer}
+      VIEWER_PASSWORD: ${VIEWER_PASSWORD:-viewer-pass}
+    volumes:
+      - ./reports:/tests/reports
+      - ./test-results:/tests/test-results
+    depends_on:
+      app:
+        condition: service_healthy

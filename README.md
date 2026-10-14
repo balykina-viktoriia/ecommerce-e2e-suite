@@ -1,5 +1,7 @@
 # E-commerce E2E Test Suite
 
+[![Tests](https://github.com/balykina-viktoriia/ecommerce-e2e-suite/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/balykina-viktoriia/ecommerce-e2e-suite/actions/workflows/tests.yml)
+
 An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, auth, database and data quality.
 
 ## Layers
@@ -11,6 +13,29 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 | Auth | Playwright `storageState` per role, a role x endpoint permission matrix (viewer gets 403 on delete, and the row survives), order ownership, forged and expired JWTs | done |
 | Database | After each API write, `psycopg` reads the row straight from PostgreSQL: exact `NUMERIC` values, timestamps, stock changes, order lines; failed and forbidden writes leave no trace; table constraints reject bad rows; passwords are stored salted and hashed | done |
 | Data quality | `pandas` checks on a consistent snapshot of the shop DB across validity, completeness, accuracy, timeliness, consistency and uniqueness; every check is itself tested by injecting a defect into a clean dataset | done |
+
+## Run everything with Docker
+
+The only requirement is Docker. One command builds the app, the database and the test runner, and runs every layer:
+
+```bash
+docker compose run --rm tests
+```
+
+Reports land in `reports/`: an HTML test report and `data_quality.md`. Run one layer:
+
+```bash
+docker compose run --rm tests pytest -m api -n 4
+```
+
+## CI
+
+[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs on every pull request and every push to `main`:
+
+- `lint`: `ruff check` and `ruff format --check`
+- `test`: a matrix with one parallel job per layer (`ui`, `api`, `auth`, `db`, `data_quality`), each running the same `docker compose run` as above, with `pytest-xdist` inside. `fail-fast` is off, so one red layer doesn't hide the others.
+
+Each job uploads its HTML report, JUnit XML and Playwright traces of failed UI tests as artifacts.
 
 ## System under test
 
@@ -43,7 +68,7 @@ docker compose down -v
 | POST | `/orders` | signed in | 400 duplicate product, 404 unknown product, 409 not enough stock |
 | GET | `/orders`, `/orders/{id}` | signed in | viewers see only their own orders |
 
-## Run the tests
+## Run the tests without Docker
 
 ```bash
 python3 -m venv .venv
@@ -108,6 +133,8 @@ tests/data_quality/  # dataset loader, checks by dimension, defect-injection tes
 tests/settings.py    # API URL and test accounts (env vars, defaults match .env.example)
 app/                 # shop API (FastAPI)
 db/init.sql          # database schema and seed data
-docker-compose.yml   # app + database
+docker-compose.yml   # app + database + test runner
 pyproject.toml       # pytest and ruff configuration
+Dockerfile           # test runner image (Playwright + Python + the suite)
+.github/workflows/   # CI: lint + one job per layer
 ```
