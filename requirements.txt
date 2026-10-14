@@ -1,11 +1,14 @@
-pytest
-pytest-playwright
-pytest-html
-pytest-xdist
-ruff
-requests
-jsonschema
-rfc3339-validator
-PyJWT
-psycopg[binary]
-pandas
+# Pinned so local runs, the Docker image and CI test the same thing.
+# playwright must match the mcr.microsoft.com/playwright/python image tag in the Dockerfile.
+playwright==1.63.0
+pytest==9.1.1
+pytest-playwright==0.10.0
+pytest-xdist==3.8.0
+pytest-html==4.2.0
+requests==2.34.2
+jsonschema==4.26.0
+rfc3339-validator==0.1.4
+PyJWT==2.15.1
+psycopg[binary]==3.3.6
+pandas==3.0.6
+ruff==0.17.0

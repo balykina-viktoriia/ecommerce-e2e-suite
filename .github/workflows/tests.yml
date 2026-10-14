@@ -1,0 +1,64 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff==0.17.0
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    name: test (${{ matrix.layer }})
+    runs-on: ubuntu-latest
+    strategy:
+      # Run every layer to the end: one red layer should not hide the state of the others.
+      fail-fast: false
+      matrix:
+        layer: [ui, api, auth, db, data_quality]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build images
+        run: docker compose --profile test build
+
+      - name: Run ${{ matrix.layer }} tests
+        run: |
+          # The UI layer tests saucedemo only, so it doesn't need the shop app and database.
+          deps=$([ "${{ matrix.layer }}" = "ui" ] && echo "--no-deps" || echo "")
+          docker compose run --rm $deps tests \
+            pytest -m ${{ matrix.layer }} -n 4 \
+              --html=reports/${{ matrix.layer }}.html --self-contained-html \
+              --junitxml=reports/${{ matrix.layer }}.xml
+
+      - name: App logs
+        if: failure() && matrix.layer != 'ui'
+        run: docker compose logs app db
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.layer }}
+          path: |
+            reports/
+            test-results/
+          if-no-files-found: ignore
+
+      - name: Stop containers
+        if: always()
+        run: docker compose --profile test down -v
