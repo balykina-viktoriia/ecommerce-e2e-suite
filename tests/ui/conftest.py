@@ -10,12 +10,6 @@ from tests.ui.test_data import User, Users
 DEFAULT_TIMEOUT_MS = 10_000
 
 
-def pytest_collection_modifyitems(items):
-    for item in items:
-        if "tests/ui/" in item.nodeid:
-            item.add_marker(pytest.mark.ui)
-
-
 @pytest.fixture(autouse=True)
 def set_timeout(page: Page):
     page.set_default_timeout(DEFAULT_TIMEOUT_MS)

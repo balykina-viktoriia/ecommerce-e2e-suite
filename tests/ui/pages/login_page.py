@@ -23,7 +23,9 @@ class LoginPage(BasePage):
         return self.page.locator("[data-test='error']")
 
     def navigate(self):
-        self.page.goto(self.URL)
+        # Don't wait for the load event: it also waits for third-party fonts, which
+        # sometimes stall for seconds. Assertions wait for the elements they need anyway.
+        self.page.goto(self.URL, wait_until="domcontentloaded")
 
     def login(self, username: str, password: str):
         self.username_input.fill(username)

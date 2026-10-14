@@ -33,5 +33,5 @@ def test_logout_returns_to_login_page(page, logged_in_page):
 
 def test_inventory_requires_login(page, logged_in_page):
     logged_in_page.logout()
-    page.goto(logged_in_page.URL)
+    page.goto(logged_in_page.URL, wait_until="domcontentloaded")
     LoginPage(page).expect_on_login_page()
