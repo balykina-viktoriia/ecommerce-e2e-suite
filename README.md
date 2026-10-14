@@ -7,7 +7,7 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 | Layer | What it covers | Status |
 |---|---|---|
 | UI | Playwright + Page Object Model against [saucedemo](https://www.saucedemo.com), typed test data: login (positive and negative), logout, sorting, cart, checkout validation and totals | done |
-| API | CRUD, schema validation, headers, negative cases | planned |
+| API | `requests` tests: CRUD, JSON Schema contracts, headers, and negative cases (400, 401, 404, 405, 409, 422) | done |
 | Auth | `storageState`, multiple roles, permission checks | planned |
 | Database | Assert on the row in the DB after an API write | planned |
 | Data quality | Checks on the six data-quality dimensions | planned |
@@ -53,11 +53,20 @@ playwright install chromium
 pytest
 ```
 
-Run one layer with a marker, in parallel:
+The API layer needs the shop app running (see above). Run one layer with a marker, in parallel:
 
 ```bash
 pytest -m ui -n 4
 ```
+
+## Known issues
+
+Defects the suite found are kept as `xfail(strict=True)` tests: they document the bug, and turn red once it is fixed so the marker gets removed.
+
+| Where | Defect |
+|---|---|
+| saucedemo | `problem_user` cannot add the Fleece Jacket to the cart |
+| shop API | `405` on `/products/{id}` returns `Allow: GET`, although `PUT` and `DELETE` exist |
 
 ## Structure
 
@@ -65,6 +74,8 @@ pytest -m ui -n 4
 tests/ui/pages/      # page objects
 tests/ui/test_data.py  # typed test data (dataclasses, enums)
 tests/ui/            # UI tests and fixtures
+tests/api/           # API tests, client, JSON schemas, payload factory
+tests/settings.py    # API URL and test accounts (env vars, defaults match .env.example)
 app/                 # shop API (FastAPI)
 db/init.sql          # database schema and seed data
 docker-compose.yml   # app + database

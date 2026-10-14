@@ -3,3 +3,6 @@ pytest-playwright
 pytest-html
 pytest-xdist
 ruff
+requests
+jsonschema
+rfc3339-validator
