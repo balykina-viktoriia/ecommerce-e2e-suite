@@ -9,7 +9,7 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 | UI | Playwright + Page Object Model against [saucedemo](https://www.saucedemo.com), typed test data: login (positive and negative), logout, sorting, cart, checkout validation and totals | done |
 | API | `requests` tests: CRUD, JSON Schema contracts, headers, and negative cases (400, 401, 404, 405, 409, 422) | done |
 | Auth | Playwright `storageState` per role, a role x endpoint permission matrix (viewer gets 403 on delete, and the row survives), order ownership, forged and expired JWTs | done |
-| Database | Assert on the row in the DB after an API write | planned |
+| Database | After each API write, `psycopg` reads the row straight from PostgreSQL: exact `NUMERIC` values, timestamps, stock changes, order lines; failed and forbidden writes leave no trace; table constraints reject bad rows; passwords are stored salted and hashed | done |
 | Data quality | Checks on the six data-quality dimensions | planned |
 
 ## System under test
@@ -86,6 +86,7 @@ tests/ui/test_data.py  # typed test data (dataclasses, enums)
 tests/ui/            # UI tests and fixtures
 tests/api/           # API tests, client, JSON schemas, payload factory
 tests/auth/          # storageState fixtures, permission matrix, token tests
+tests/db/            # direct SQL checks after API writes, schema constraints
 tests/settings.py    # API URL and test accounts (env vars, defaults match .env.example)
 app/                 # shop API (FastAPI)
 db/init.sql          # database schema and seed data
