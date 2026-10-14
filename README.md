@@ -8,7 +8,7 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 |---|---|---|
 | UI | Playwright + Page Object Model against [saucedemo](https://www.saucedemo.com), typed test data: login (positive and negative), logout, sorting, cart, checkout validation and totals | done |
 | API | `requests` tests: CRUD, JSON Schema contracts, headers, and negative cases (400, 401, 404, 405, 409, 422) | done |
-| Auth | `storageState`, multiple roles, permission checks | planned |
+| Auth | Playwright `storageState` per role, a role x endpoint permission matrix (viewer gets 403 on delete, and the row survives), order ownership, forged and expired JWTs | done |
 | Database | Assert on the row in the DB after an API write | planned |
 | Data quality | Checks on the six data-quality dimensions | planned |
 
@@ -59,6 +59,16 @@ The API layer needs the shop app running (see above). Run one layer with a marke
 pytest -m ui -n 4
 ```
 
+## Troubleshooting
+
+UI tests time out on `Page.goto` now and then, while the API layers are fine: check the IPv6 route to saucedemo. On one home network a third of IPv6 requests stalled for 5-12 seconds while IPv4 answered in 0.1 s:
+
+```bash
+for v in 4 6; do curl -$v -s -o /dev/null -m 12 -w "IPv$v %{time_total}s\n" https://www.saucedemo.com/; done
+```
+
+GitHub Actions runners and Docker containers use IPv4 by default, so CI is not affected.
+
 ## Known issues
 
 Defects the suite found are kept as `xfail(strict=True)` tests: they document the bug, and turn red once it is fixed so the marker gets removed.
@@ -75,6 +85,7 @@ tests/ui/pages/      # page objects
 tests/ui/test_data.py  # typed test data (dataclasses, enums)
 tests/ui/            # UI tests and fixtures
 tests/api/           # API tests, client, JSON schemas, payload factory
+tests/auth/          # storageState fixtures, permission matrix, token tests
 tests/settings.py    # API URL and test accounts (env vars, defaults match .env.example)
 app/                 # shop API (FastAPI)
 db/init.sql          # database schema and seed data
