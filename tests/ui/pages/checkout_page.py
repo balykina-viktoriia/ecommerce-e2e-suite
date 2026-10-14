@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 from playwright.sync_api import expect
 
-from tests.ui.pages.base_page import BasePage
+from tests.ui.pages.base_page import BasePage, parse_money
 from tests.ui.test_data import Customer, SuccessMessage
 
 
@@ -34,6 +36,22 @@ class CheckoutPage(BasePage):
         return self.page.locator("[data-test='complete-header']")
 
     @property
+    def summary_item_prices(self):
+        return self.page.locator("[data-test='cart-list'] [data-test='inventory-item-price']")
+
+    @property
+    def subtotal_label(self):
+        return self.page.locator("[data-test='subtotal-label']")
+
+    @property
+    def tax_label(self):
+        return self.page.locator("[data-test='tax-label']")
+
+    @property
+    def total_label(self):
+        return self.page.locator("[data-test='total-label']")
+
+    @property
     def error_message(self):
         return self.page.locator("[data-test='error']")
 
@@ -48,6 +66,18 @@ class CheckoutPage(BasePage):
 
     def expect_on_step_two_page(self):
         expect(self.page).to_have_url(self.CHECKOUT_URL)
+
+    def item_prices(self) -> list[Decimal]:
+        return [parse_money(text) for text in self.summary_item_prices.all_text_contents()]
+
+    def subtotal(self) -> Decimal:
+        return parse_money(self.subtotal_label.inner_text())
+
+    def tax(self) -> Decimal:
+        return parse_money(self.tax_label.inner_text())
+
+    def total(self) -> Decimal:
+        return parse_money(self.total_label.inner_text())
 
     def finish_checkout(self):
         self.finish_button.click()

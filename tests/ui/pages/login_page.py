@@ -1,3 +1,5 @@
+from playwright.sync_api import expect
+
 from tests.ui.pages.base_page import BasePage
 
 
@@ -27,3 +29,10 @@ class LoginPage(BasePage):
         self.username_input.fill(username)
         self.password_input.fill(password)
         self.login_button.click()
+
+    def expect_on_login_page(self):
+        expect(self.page).to_have_url(self.URL)
+        expect(self.login_button).to_be_visible()
+
+    def expect_error(self, message: str):
+        expect(self.error_message).to_have_text(message)

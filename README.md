@@ -6,7 +6,7 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 
 | Layer | What it covers | Status |
 |---|---|---|
-| UI | Playwright + Page Object Model against [saucedemo](https://www.saucedemo.com), typed test data | done |
+| UI | Playwright + Page Object Model against [saucedemo](https://www.saucedemo.com), typed test data: login (positive and negative), logout, sorting, cart, checkout validation and totals | done |
 | API | CRUD, schema validation, headers, negative cases | planned |
 | Auth | `storageState`, multiple roles, permission checks | planned |
 | Database | Assert on the row in the DB after an API write | planned |
