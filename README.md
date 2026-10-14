@@ -10,7 +10,7 @@ An end-to-end test suite for an e-commerce flow, built layer by layer: UI, API, 
 | API | `requests` tests: CRUD, JSON Schema contracts, headers, and negative cases (400, 401, 404, 405, 409, 422) | done |
 | Auth | Playwright `storageState` per role, a role x endpoint permission matrix (viewer gets 403 on delete, and the row survives), order ownership, forged and expired JWTs | done |
 | Database | After each API write, `psycopg` reads the row straight from PostgreSQL: exact `NUMERIC` values, timestamps, stock changes, order lines; failed and forbidden writes leave no trace; table constraints reject bad rows; passwords are stored salted and hashed | done |
-| Data quality | Checks on the six data-quality dimensions | planned |
+| Data quality | `pandas` checks on a consistent snapshot of the shop DB across validity, completeness, accuracy, timeliness, consistency and uniqueness; every check is itself tested by injecting a defect into a clean dataset | done |
 
 ## System under test
 
@@ -69,6 +69,23 @@ for v in 4 6; do curl -$v -s -o /dev/null -m 12 -w "IPv$v %{time_total}s\n" http
 
 GitHub Actions runners and Docker containers use IPv4 by default, so CI is not affected.
 
+## Data quality
+
+The data-quality layer seeds 60 orders through the API, takes one read-only `REPEATABLE READ` snapshot of the database (so rows written by parallel tests can't show up as false orphans), and runs these checks:
+
+| Dimension | Checks |
+|---|---|
+| Validity | order status and user role are known values; SKU format; price and stock ranges; prices have at most two decimals |
+| Completeness | required fields are filled (blank names count as missing); every order has at least one line |
+| Accuracy | order total equals the sum of quantity × unit price, compared as exact decimals |
+| Timeliness | no timestamps in the future; an order is not older than the products in it; the newest order is less than 24 hours old |
+| Consistency | no orphan order lines or orders; `updated_at` is not before `created_at` |
+| Uniqueness | primary and natural keys: ids, usernames, SKUs, (order, product) pairs |
+
+Each check returns the failing rows, not just pass/fail. The results are also written to `reports/data_quality.md`.
+
+A check that never fails proves nothing, so `test_checks_detect_defects.py` breaks a clean, hand-made dataset one defect at a time. Each defect must be flagged by its own check, with the exact number of bad rows, and must not set off checks in unrelated dimensions.
+
 ## Known issues
 
 Defects the suite found are kept as `xfail(strict=True)` tests: they document the bug, and turn red once it is fixed so the marker gets removed.
@@ -87,6 +104,7 @@ tests/ui/            # UI tests and fixtures
 tests/api/           # API tests, client, JSON schemas, payload factory
 tests/auth/          # storageState fixtures, permission matrix, token tests
 tests/db/            # direct SQL checks after API writes, schema constraints
+tests/data_quality/  # dataset loader, checks by dimension, defect-injection tests
 tests/settings.py    # API URL and test accounts (env vars, defaults match .env.example)
 app/                 # shop API (FastAPI)
 db/init.sql          # database schema and seed data
