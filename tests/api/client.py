@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 from tests.settings import API_BASE_URL, Credentials
@@ -42,3 +43,15 @@ class ApiClient:
 
     def delete(self, path: str, **kwargs) -> requests.Response:
         return self.request("DELETE", path, **kwargs)
+
+
+def require_shop_api() -> None:
+    """Stop the run with a clear message instead of a hundred connection errors."""
+    try:
+        ApiClient().get("/health").raise_for_status()
+    except requests.RequestException as error:
+        pytest.exit(
+            f"Shop API is not reachable at {API_BASE_URL} ({error}). "
+            "Start it with: docker compose up -d --build --wait",
+            returncode=1,
+        )

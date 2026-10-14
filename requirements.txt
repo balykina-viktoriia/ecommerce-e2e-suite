@@ -6,3 +6,4 @@ ruff
 requests
 jsonschema
 rfc3339-validator
+PyJWT
