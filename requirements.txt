@@ -8,3 +8,4 @@ jsonschema
 rfc3339-validator
 PyJWT
 psycopg[binary]
+pandas
